@@ -28,8 +28,8 @@ function hid2_contact_ref_field_info() {
 function hid2_contact_ref_field_validate($entity_type, $entity, $field, $instance, $langcode, $items, &$errors) {
   // Check if the contact exists in HID.
   foreach ($items as $delta => $item) {
-    if (is_array($item) && !empty($item['user_id'])) {
-      if (!$contact = hid2_contact_ref_get_contact($item['user_id'])) {
+    if (is_array($item) && !empty($item['sub'])) {
+      if (!$contact = hid2_contact_ref_get_contact($item['sub'])) {
         $errors[$field['field_name']][$langcode][$delta][] = array(
           'error' => 'invalid_contact_id',
           'message' => t(
@@ -46,7 +46,7 @@ function hid2_contact_ref_field_validate($entity_type, $entity, $field, $instanc
  * Implements hook_field_is_empty().
  */
 function hid2_contact_ref_field_is_empty($item, $field) {
-  return empty($item['user_id']);
+  return empty($item['sub']);
 }
 
 /**
@@ -74,7 +74,7 @@ function hid2_contact_ref_field_widget_info() {
 function hid2_contact_ref_field_widget_form(&$form, &$form_state, $field, $instance, $langcode, $items, $delta, $element) {
   $default_value = '';
   if (!empty($items[$delta])) {
-    if ($contact = hid2_contact_ref_get_contact($items[$delta]['user_id'])) {
+    if ($contact = hid2_contact_ref_get_contact($items[$delta]['sub'])) {
       $label = $contact->name;
       $default_value = "$label [id: $contact->_id]";
     }
@@ -90,7 +90,7 @@ function hid2_contact_ref_field_widget_form(&$form, &$form_state, $field, $insta
 
   $element['#element_validate'][] = 'hid2_contact_ref_field_widget_validate';
 
-  return array('user_id' => $element);
+  return array('sub' => $element);
 }
 
 /**
@@ -137,12 +137,12 @@ function hid2_contact_ref_field_formatter_view($entity_type, $entity, $field, $i
     case 'hid2_contact_ref_full':
       $wrapper = entity_metadata_wrapper($entity_type, $entity);
       foreach ($items as $delta => $item) {
-        if ($contact = hid2_contact_ref_get_contact($item['user_id'])) {
+        if ($contact = hid2_contact_ref_get_contact($item['sub'])) {
           $element[$delta] = array(
             '#theme' => 'hid2_contact_ref_single_contact',
             '#contact' => $contact,
             '#cache' => array(
-              'keys' => array('hid_contact', $entity_type, $wrapper->getIdentifier(), $item['user_id']),
+              'keys' => array('hid_contact', $entity_type, $wrapper->getIdentifier(), $item['sub']),
               'bin' => 'cache',
               'expire' => time() + 3600,
               'granularity' => DRUPAL_CACHE_PER_PAGE,
@@ -201,7 +201,7 @@ function hid2_contact_ref_autocomplete_callback($type, $string = '') {
     'appMetadata.hid.login' => 'true'
   );
   $variables['headers'] = array(
-    'Authorization' => 'Bearer '.variable_get('hid2_contact_ref_v2_api_key', NULL)
+    'Authorization' => 'Bearer '.variable_get('hid2_contact_ref_api_key', NULL)
   );
   $url = variable_get('hid2_contact_ref_api_endpoint', 'https://api.humanitarian.id').'/api/v2/user';
   $url .= '?' . http_build_query($query);
@@ -210,7 +210,7 @@ function hid2_contact_ref_autocomplete_callback($type, $string = '') {
     $contacts = json_decode($response->data);
     $out = [];
     foreach ($contacts as $contact) {
-      $out["$contact->name [id: $contact->id]"] = $contact->name;
+      $out["$contact->name [id: $contact->sub]"] = $contact->name;
     }
     drupal_json_output($out);
   }
@@ -221,20 +221,16 @@ function hid2_contact_ref_autocomplete_callback($type, $string = '') {
 function hid2_contact_ref_get_contact($id) {
   $url = variable_get('hid2_contact_ref_api_endpoint', 'https://api.humanitarian.id').'/api/v2/user/'.$id;
   $variables['headers'] = array(
-    'Authorization' => 'Bearer '.variable_get('hid2_contact_ref_v2_api_key', NULL)
+    'Authorization' => 'Bearer '.variable_get('hid2_contact_ref_api_key', NULL)
   );
 
   $response = drupal_http_request($url, $variables);
   if ($response->code == '200') {
-    $contacts = json_decode($response->data);
-    $out = [];
-    foreach ($contacts as $contact) {
-      $out["$contact->name [id: $contact->id]"] = $contact->name;
-    }
-    drupal_json_output($out);
+    return json_decode($response->data);
   }
-
-  drupal_exit();
+  else {
+    return NULL;
+  }
 }
 
 /**
