@@ -146,7 +146,7 @@ function hid2_contact_ref_field_formatter_view($entity_type, $entity, $field, $i
                 'hid_contact',
                 $entity_type,
                 $wrapper->getIdentifier(),
-                $item['sub']
+                $item['sub'],
               ),
               'bin' => 'cache',
               'expire' => time() + 3600,
@@ -223,8 +223,11 @@ function hid2_contact_ref_autocomplete_callback($type, $string = '') {
   drupal_exit();
 }
 
+/**
+ * Perform the HTTP request required to retrieve the HID contact
+ */
 function hid2_contact_ref_get_contact($id) {
-  $url = variable_get('hid2_contact_ref_api_endpoint', 'https://api.humanitarian.id') . '/api/v2/user/'.$id;
+  $url = variable_get('hid2_contact_ref_api_endpoint', 'https://api.humanitarian.id') . '/api/v2/user/' . $id;
   $variables['headers'] = array(
     'Authorization' => 'Bearer ' . variable_get('hid2_contact_ref_api_key', NULL),
   );
