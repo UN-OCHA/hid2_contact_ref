@@ -1,4 +1,8 @@
 <?php
+/**
+ * @file
+ * Settings page
+ */
 
 /**
  * Admin form for managing the system variables associated with this module.
