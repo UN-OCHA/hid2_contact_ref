@@ -224,7 +224,7 @@ function hid2_contact_ref_autocomplete_callback($type, $string = '') {
 }
 
 /**
- * Perform the HTTP request required to retrieve the HID contact
+ * Perform the HTTP request required to retrieve the HID contact.
  */
 function hid2_contact_ref_get_contact($id) {
   $url = variable_get('hid2_contact_ref_api_endpoint', 'https://api.humanitarian.id') . '/api/v2/user/' . $id;
