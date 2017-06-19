@@ -22,15 +22,15 @@
     <span><?php print $contact->email[0]->address; ?></span>
   </div>
   <?php
-    if (!empty($contact->phone)) {
-      foreach ($contact->phone as $phone) {
+    if (!empty($contact->phone)):
+      foreach ($contact->phone as $phone):
     ?>
         <div itemprop="contactPoint" itemscope itemtype="http://schema.org/ContactPoint">
           <span itemprop="telephone"><?php print $phone->number; ?></span>
           (<span itemprop="contactType"><?php print $phone->type ?></span>)
         </div>
     <?php
-      }
-    }
+      endforeach;
+    endif;
     ?>
 </article>
